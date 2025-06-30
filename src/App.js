@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { createTheme, ThemeProvider, CssBaseline } from '@mui/material';
 import Navbar from './components/Navbar';
@@ -11,8 +11,6 @@ import { AuthProvider } from './context/AuthContext';
 import './styles/global.css';
 
 const App = () => {
-  const [darkMode, setDarkMode] = useState(true);
-
   const theme = createTheme({
     palette: {
       mode: 'dark',
