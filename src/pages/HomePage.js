@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Typography, Grid, Card, CardContent, Chip, Box, InputBase, IconButton } from '@mui/material';
-import { Search, AccessTime, Person } from '@mui/icons-material';
+import { Container, Typography, Box, InputBase, IconButton, Divider } from '@mui/material';
+import { Search, AccessTime, Person, CalendarToday } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { getAllBlogs } from '../utils/blogStorage';
 
@@ -30,6 +30,14 @@ const HomePage = () => {
     navigate(`/blog/${blogId}`);
   };
 
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
   return (
     <div style={{ paddingTop: '80px', minHeight: '100vh' }}>
       {/* Stars Background */}
@@ -47,7 +55,7 @@ const HomePage = () => {
         ))}
       </div>
 
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Container maxWidth="md" sx={{ py: 4 }}>
         {/* Hero Section */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -103,7 +111,8 @@ const HomePage = () => {
               sx={{
                 display: 'flex',
                 alignItems: 'center',
-                width: { xs: '100%', md: '500px' },
+                width: '100%',
+                maxWidth: '600px',
                 p: 1,
                 '&:hover': {
                   boxShadow: '0 0 30px rgba(0, 212, 255, 0.3)',
@@ -131,102 +140,118 @@ const HomePage = () => {
           </Box>
         </motion.div>
 
-        {/* Blog Grid */}
-        <Grid container spacing={4}>
+        {/* Blog List */}
+        <Box sx={{ maxWidth: '800px', mx: 'auto' }}>
           {filteredBlogs.map((blog, index) => (
-            <Grid item xs={12} md={6} lg={4} key={blog.id}>
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                whileHover={{ y: -8 }}
-              >
-                <Card
-                  className="glass-effect hover-lift"
-                  sx={{
-                    height: '100%',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      boxShadow: '0 20px 40px rgba(0, 212, 255, 0.2)',
-                      transform: 'translateY(-8px)',
+            <motion.div
+              key={blog.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+            >
+              <Box
+                onClick={() => handleBlogClick(blog.id)}
+                sx={{
+                  py: 4,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    '& .blog-title': {
+                      color: '#00d4ff',
                     },
+                    '& .blog-excerpt': {
+                      color: '#ffffff',
+                    },
+                  },
+                }}
+              >
+                <Typography
+                  className="blog-title"
+                  variant="h4"
+                  sx={{
+                    mb: 2,
+                    fontWeight: 700,
+                    color: '#ffffff',
+                    lineHeight: 1.3,
+                    transition: 'color 0.3s ease',
                   }}
-                  onClick={() => handleBlogClick(blog.id)}
                 >
-                  <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
-                    <Typography
-                      variant="h5"
-                      sx={{
-                        mb: 2,
-                        fontWeight: 700,
-                        color: '#ffffff',
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      {blog.title}
-                    </Typography>
-                    
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        mb: 3,
-                        color: '#b3b3b3',
-                        lineHeight: 1.6,
-                        flex: 1,
-                      }}
-                    >
-                      {blog.excerpt}
-                    </Typography>
+                  {blog.title}
+                </Typography>
+                
+                <Typography
+                  className="blog-excerpt"
+                  variant="body1"
+                  sx={{
+                    mb: 3,
+                    color: '#b3b3b3',
+                    lineHeight: 1.7,
+                    fontSize: '1.1rem',
+                    transition: 'color 0.3s ease',
+                  }}
+                >
+                  {blog.excerpt}
+                </Typography>
 
-                    <Box sx={{ mb: 2 }}>
-                      {blog.tags.slice(0, 3).map((tag) => (
-                        <Chip
-                          key={tag}
-                          label={tag}
-                          size="small"
-                          sx={{
-                            mr: 1,
-                            mb: 1,
-                            background: 'rgba(0, 212, 255, 0.1)',
-                            color: '#00d4ff',
-                            border: '1px solid rgba(0, 212, 255, 0.3)',
-                            '&:hover': {
-                              background: 'rgba(0, 212, 255, 0.2)',
-                            },
-                          }}
-                        />
-                      ))}
-                    </Box>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 3,
+                    color: '#666',
+                    fontSize: '0.9rem',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Person sx={{ fontSize: 16, mr: 0.5 }} />
+                    <Typography variant="caption" sx={{ color: 'inherit' }}>
+                      {blog.author}
+                    </Typography>
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <CalendarToday sx={{ fontSize: 16, mr: 0.5 }} />
+                    <Typography variant="caption" sx={{ color: 'inherit' }}>
+                      {formatDate(blog.publishedAt)}
+                    </Typography>
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <AccessTime sx={{ fontSize: 16, mr: 0.5 }} />
+                    <Typography variant="caption" sx={{ color: 'inherit' }}>
+                      {blog.readTime}
+                    </Typography>
+                  </Box>
 
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        pt: 2,
-                        borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', color: '#b3b3b3' }}>
-                        <Person sx={{ fontSize: 16, mr: 0.5 }} />
-                        <Typography variant="caption">
-                          {blog.author}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', color: '#b3b3b3' }}>
-                        <AccessTime sx={{ fontSize: 16, mr: 0.5 }} />
-                        <Typography variant="caption">
-                          {blog.readTime}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </Grid>
+                  <Box sx={{ ml: 'auto' }}>
+                    {blog.tags.slice(0, 2).map((tag, tagIndex) => (
+                      <Typography
+                        key={tag}
+                        variant="caption"
+                        sx={{
+                          color: '#00d4ff',
+                          opacity: 0.7,
+                          mr: tagIndex < blog.tags.slice(0, 2).length - 1 ? 1 : 0,
+                        }}
+                      >
+                        #{tag}
+                      </Typography>
+                    ))}
+                  </Box>
+                </Box>
+              </Box>
+              
+              {index < filteredBlogs.length - 1 && (
+                <Divider 
+                  sx={{ 
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    my: 0,
+                  }} 
+                />
+              )}
+            </motion.div>
           ))}
-        </Grid>
+        </Box>
 
         {filteredBlogs.length === 0 && (
           <motion.div
