@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Typography, Box, Chip, IconButton, Fab } from '@mui/material';
+import { Container, Typography, Box, Chip, IconButton, Fab, CircularProgress } from '@mui/material';
 import { ArrowBack, AccessTime, Person, CalendarToday } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
@@ -13,10 +13,15 @@ const BlogPost = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchBlog = () => {
-      const blogData = getBlogById(id);
-      setBlog(blogData);
-      setLoading(false);
+    const fetchBlog = async () => {
+      try {
+        const blogData = await getBlogById(id);
+        setBlog(blogData);
+      } catch (error) {
+        console.error('Error fetching blog:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchBlog();
@@ -37,15 +42,7 @@ const BlogPost = () => {
           animate={{ rotate: 360 }}
           transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
         >
-          <Box
-            sx={{
-              width: 60,
-              height: 60,
-              border: '3px solid rgba(0, 212, 255, 0.3)',
-              borderTop: '3px solid #00d4ff',
-              borderRadius: '50%',
-            }}
-          />
+          <CircularProgress sx={{ color: '#00d4ff' }} size={60} />
         </motion.div>
       </Box>
     );
@@ -175,12 +172,12 @@ const BlogPost = () => {
               
               <Box sx={{ display: 'flex', alignItems: 'center', color: '#b3b3b3' }}>
                 <CalendarToday sx={{ fontSize: 18, mr: 1 }} />
-                <Typography variant="body2">{formatDate(blog.publishedAt)}</Typography>
+                <Typography variant="body2">{formatDate(blog.published_at)}</Typography>
               </Box>
               
               <Box sx={{ display: 'flex', alignItems: 'center', color: '#b3b3b3' }}>
                 <AccessTime sx={{ fontSize: 18, mr: 1 }} />
-                <Typography variant="body2">{blog.readTime}</Typography>
+                <Typography variant="body2">{blog.read_time}</Typography>
               </Box>
             </Box>
 

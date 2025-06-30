@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Typography, Box, InputBase, IconButton, Divider } from '@mui/material';
+import { Container, Typography, Box, InputBase, IconButton, Divider, CircularProgress } from '@mui/material';
 import { Search, AccessTime, Person, CalendarToday } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { getAllBlogs } from '../utils/blogStorage';
@@ -9,12 +9,23 @@ const HomePage = () => {
   const [blogs, setBlogs] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredBlogs, setFilteredBlogs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const allBlogs = getAllBlogs();
-    setBlogs(allBlogs);
-    setFilteredBlogs(allBlogs);
+    const loadBlogs = async () => {
+      try {
+        const allBlogs = await getAllBlogs();
+        setBlogs(allBlogs);
+        setFilteredBlogs(allBlogs);
+      } catch (error) {
+        console.error('Error loading blogs:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadBlogs();
   }, []);
 
   useEffect(() => {
@@ -37,6 +48,27 @@ const HomePage = () => {
       day: 'numeric',
     });
   };
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh',
+          paddingTop: '80px',
+        }}
+      >
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+        >
+          <CircularProgress sx={{ color: '#00d4ff' }} size={60} />
+        </motion.div>
+      </Box>
+    );
+  }
 
   return (
     <div style={{ paddingTop: '80px', minHeight: '100vh' }}>
@@ -212,14 +244,14 @@ const HomePage = () => {
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <CalendarToday sx={{ fontSize: 16, mr: 0.5 }} />
                     <Typography variant="caption" sx={{ color: 'inherit' }}>
-                      {formatDate(blog.publishedAt)}
+                      {formatDate(blog.published_at)}
                     </Typography>
                   </Box>
                   
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <AccessTime sx={{ fontSize: 16, mr: 0.5 }} />
                     <Typography variant="caption" sx={{ color: 'inherit' }}>
-                      {blog.readTime}
+                      {blog.read_time}
                     </Typography>
                   </Box>
 
@@ -253,7 +285,7 @@ const HomePage = () => {
           ))}
         </Box>
 
-        {filteredBlogs.length === 0 && (
+        {filteredBlogs.length === 0 && !loading && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

@@ -11,6 +11,7 @@ import {
   Grid,
   IconButton,
   Divider,
+  CircularProgress,
 } from '@mui/material';
 import { Save, Preview, ArrowBack, Add } from '@mui/icons-material';
 import { motion } from 'framer-motion';
@@ -31,6 +32,7 @@ const BlogEditor = () => {
   const [newTag, setNewTag] = useState('');
   const [previewMode, setPreviewMode] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -39,10 +41,23 @@ const BlogEditor = () => {
     }
 
     if (id) {
-      const existingBlog = getBlogById(id);
-      if (existingBlog) {
-        setBlog(existingBlog);
-      }
+      const loadBlog = async () => {
+        setLoading(true);
+        try {
+          const existingBlog = await getBlogById(id);
+          if (existingBlog) {
+            setBlog({
+              ...existingBlog,
+              readTime: existingBlog.read_time,
+            });
+          }
+        } catch (error) {
+          console.error('Error loading blog:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      loadBlog();
     }
   }, [id, isAuthenticated, navigate]);
 
@@ -60,7 +75,7 @@ const BlogEditor = () => {
     };
 
     try {
-      saveBlog(blogToSave);
+      await saveBlog(blogToSave);
       navigate('/admin/dashboard');
     } catch (error) {
       console.error('Error saving blog:', error);
@@ -95,6 +110,27 @@ const BlogEditor = () => {
 
   if (!isAuthenticated) {
     return null;
+  }
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh',
+          paddingTop: '80px',
+        }}
+      >
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+        >
+          <CircularProgress sx={{ color: '#00d4ff' }} size={60} />
+        </motion.div>
+      </Box>
+    );
   }
 
   return (

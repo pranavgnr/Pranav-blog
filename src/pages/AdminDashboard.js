@@ -14,6 +14,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  CircularProgress,
 } from '@mui/material';
 import { Add, Edit, Delete, Visibility } from '@mui/icons-material';
 import { motion } from 'framer-motion';
@@ -22,6 +23,7 @@ import { getAllBlogs, deleteBlog } from '../utils/blogStorage';
 
 const AdminDashboard = () => {
   const [blogs, setBlogs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [deleteDialog, setDeleteDialog] = useState({ open: false, blogId: null, blogTitle: '' });
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -32,9 +34,15 @@ const AdminDashboard = () => {
       return;
     }
     
-    const loadBlogs = () => {
-      const allBlogs = getAllBlogs();
-      setBlogs(allBlogs);
+    const loadBlogs = async () => {
+      try {
+        const allBlogs = await getAllBlogs();
+        setBlogs(allBlogs);
+      } catch (error) {
+        console.error('Error loading blogs:', error);
+      } finally {
+        setLoading(false);
+      }
     };
     
     loadBlogs();
@@ -48,10 +56,14 @@ const AdminDashboard = () => {
     });
   };
 
-  const handleDeleteConfirm = () => {
-    deleteBlog(deleteDialog.blogId);
-    setBlogs(blogs.filter(blog => blog.id !== deleteDialog.blogId));
-    setDeleteDialog({ open: false, blogId: null, blogTitle: '' });
+  const handleDeleteConfirm = async () => {
+    try {
+      await deleteBlog(deleteDialog.blogId);
+      setBlogs(blogs.filter(blog => blog.id !== deleteDialog.blogId));
+      setDeleteDialog({ open: false, blogId: null, blogTitle: '' });
+    } catch (error) {
+      console.error('Error deleting blog:', error);
+    }
   };
 
   const handleDeleteCancel = () => {
@@ -68,6 +80,27 @@ const AdminDashboard = () => {
 
   if (!isAuthenticated) {
     return null;
+  }
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh',
+          paddingTop: '80px',
+        }}
+      >
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+        >
+          <CircularProgress sx={{ color: '#00d4ff' }} size={60} />
+        </motion.div>
+      </Box>
+    );
   }
 
   return (
@@ -171,7 +204,7 @@ const AdminDashboard = () => {
               <Card className="glass-effect">
                 <CardContent sx={{ textAlign: 'center' }}>
                   <Typography variant="h3" sx={{ color: '#8a2be2', fontWeight: 700 }}>
-                    {blogs.filter(blog => new Date(blog.publishedAt) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length}
+                    {blogs.filter(blog => new Date(blog.published_at) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length}
                   </Typography>
                   <Typography variant="body2" sx={{ color: '#b3b3b3' }}>
                     This Month
@@ -183,7 +216,7 @@ const AdminDashboard = () => {
               <Card className="glass-effect">
                 <CardContent sx={{ textAlign: 'center' }}>
                   <Typography variant="h3" sx={{ color: '#00ff88', fontWeight: 700 }}>
-                    {Math.round(blogs.reduce((acc, blog) => acc + parseInt(blog.readTime), 0) / blogs.length) || 0}
+                    {Math.round(blogs.reduce((acc, blog) => acc + parseInt(blog.read_time), 0) / blogs.length) || 0}
                   </Typography>
                   <Typography variant="body2" sx={{ color: '#b3b3b3' }}>
                     Avg Read Time
@@ -243,10 +276,10 @@ const AdminDashboard = () => {
                           </Typography>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                             <Typography variant="caption" sx={{ color: '#666' }}>
-                              Published: {formatDate(blog.publishedAt)}
+                              Published: {formatDate(blog.published_at)}
                             </Typography>
                             <Typography variant="caption" sx={{ color: '#666' }}>
-                              {blog.readTime}
+                              {blog.read_time}
                             </Typography>
                           </Box>
                           <Box>
